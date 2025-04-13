@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as ZeroRouteImport } from './routes/zero.route'
+import { Route as PowersyncRouteImport } from './routes/powersync.route'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -19,6 +20,12 @@ import { Route as IndexImport } from './routes/index'
 const ZeroRouteRoute = ZeroRouteImport.update({
   id: '/zero',
   path: '/zero',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PowersyncRouteRoute = PowersyncRouteImport.update({
+  id: '/powersync',
+  path: '/powersync',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,6 +46,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/powersync': {
+      id: '/powersync'
+      path: '/powersync'
+      fullPath: '/powersync'
+      preLoaderRoute: typeof PowersyncRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/zero': {
       id: '/zero'
       path: '/zero'
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/zero'
+  fullPaths: '/' | '/powersync' | '/zero'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/zero'
-  id: '__root__' | '/' | '/zero'
+  to: '/' | '/powersync' | '/zero'
+  id: '__root__' | '/' | '/powersync' | '/zero'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PowersyncRouteRoute: typeof PowersyncRouteRoute
   ZeroRouteRoute: typeof ZeroRouteRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PowersyncRouteRoute: PowersyncRouteRoute,
   ZeroRouteRoute: ZeroRouteRoute,
 }
 
@@ -97,11 +116,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/powersync",
         "/zero"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/powersync": {
+      "filePath": "powersync.route.tsx"
     },
     "/zero": {
       "filePath": "zero.route.tsx"
