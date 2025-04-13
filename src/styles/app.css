@@ -1,0 +1,301 @@
+:root {
+  --color-background: rgba(31, 23, 42, 1);
+  --color-text: rgba(248, 248, 242, 1);
+  --color-column-bg: rgba(43, 45, 60, 1);
+  --color-yellow: rgba(241, 250, 140, 1);
+  --color-yellow-muted: rgba(241, 250, 140, 0.3);
+  --color-pink: rgba(255, 121, 198, 1);
+  --color-pink-muted: rgba(255, 121, 198, 0.3);
+  --color-green: rgba(80, 250, 123, 1);
+  --color-green-muted: rgba(80, 250, 123, 0.3);
+  --color-blue: rgba(98, 114, 164, 1);
+  --color-purple: rgba(52, 55, 70, 1);
+  --color-dark-text: rgba(40, 42, 54, 1);
+  --color-border: rgba(98, 114, 164, 1);
+  --color-button-bg: rgba(68, 71, 90, 1);
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    avenir next,
+    avenir,
+    segoe ui,
+    helvetica neue,
+    Cantarell,
+    Ubuntu,
+    roboto,
+    noto,
+    helvetica,
+    arial,
+    sans-serif;
+  margin: 0;
+  padding: 1rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 1rem;
+}
+
+.new-task {
+  margin: 0 0 0.5rem;
+
+  input {
+    width: 100%;
+    padding: 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-blue);
+    background-color: var(--color-purple);
+    color: var(--color-text);
+    box-sizing: border-box;
+    font-size: 1rem;
+  }
+}
+
+.column-scroll {
+  overflow-y: auto;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.column {
+  background: var(--color-column-bg);
+  color: var(--color-text);
+  padding: 1rem;
+  border-radius: 6px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  min-width: 11rem;
+
+  &.todo {
+    border: 1px solid var(--color-yellow-muted);
+
+    h2 {
+      color: var(--color-yellow);
+    }
+
+    .new-task input {
+      border: 1px solid var(--color-yellow-muted);
+    }
+
+    .task-count {
+      color: var(--color-yellow);
+    }
+
+    .task-card {
+      background-color: var(--color-yellow);
+      color: var(--color-dark-text);
+    }
+  }
+
+  &.inProgress {
+    border: 1px solid var(--color-pink-muted);
+
+    h2 {
+      color: var(--color-pink);
+    }
+
+    .new-task input {
+      border: 1px solid var(--color-pink-muted);
+    }
+
+    .task-count {
+      color: var(--color-pink);
+    }
+
+    .task-card {
+      background-color: var(--color-pink);
+      color: var(--color-dark-text);
+    }
+  }
+
+  &.done {
+    border: 1px solid var(--color-green-muted);
+
+    h2 {
+      color: var(--color-green);
+    }
+
+    .new-task input {
+      border: 1px solid var(--color-green-muted);
+    }
+
+    .task-count {
+      color: var(--color-green);
+    }
+
+    .task-card {
+      background-color: var(--color-green);
+      color: var(--color-dark-text);
+    }
+  }
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.column h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.task-count {
+  color: var(--color-text);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.task-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  background: var(--color-blue);
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  cursor: grab;
+  font-weight: 600;
+
+  &:hover {
+    .remove-task {
+      opacity: 1;
+    }
+  }
+
+  input {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 0.25rem;
+    color: var(--color-text);
+    font-size: 1rem;
+    padding: 0.25rem;
+    cursor: text;
+    font-weight: 600;
+    width: 100%;
+
+    &:focus {
+      outline: none;
+      background-color: var(--color-purple);
+      color: var(--color-text);
+    }
+  }
+}
+
+.remove-task {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--color-dark-text);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.move-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.move-buttons button {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-button-bg);
+  border: 1px solid var(--color-blue);
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.app-title {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 3rem 0 0;
+}
+
+.subheader {
+  text-align: center;
+  font-weight: 400;
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 48px;
+}
+
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  flex-grow: 0;
+  object-fit: cover;
+  align-self: flex-start;
+}
+
+.index-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 1rem;
+}
+
+.ui-selector {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.ui-button {
+  width: 16rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.ui-button:hover {
+  opacity: 0.9;
+}
+
+.ui-button.zero {
+  background-color: var(--color-blue);
+  color: var(--color-text);
+}
+
+.ui-button.powersync {
+  background-color: var(--color-green);
+  color: var(--color-dark-text);
+}
+
+.ui-button.electric {
+  background-color: var(--color-pink);
+  color: var(--color-dark-text);
+}

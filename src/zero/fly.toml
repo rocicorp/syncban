@@ -1,0 +1,32 @@
+app = "aa-syncban"
+primary_region = 'iad'
+
+[build]
+image = "registry.hub.docker.com/rocicorp/zero:0.18.2025040300"
+
+[http_service]
+internal_port = 4848
+force_https = true
+auto_stop_machines = 'off'
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/"
+
+[[vm]]
+memory = '2gb'
+cpu_kind = 'shared'
+cpus = 2
+
+[mounts]
+source = "sqlite_db"
+destination = "/data"
+
+[env]
+ZERO_REPLICA_FILE = "/data/sync-replica.db"
+ZERO_UPSTREAM_DB="postgresql://postgres:kanbanisfordemo@db.kymjheqzdcrxemndpecn.supabase.co:5432/postgres?sslmode=disable"
+LOG_LEVEL = "debug"
