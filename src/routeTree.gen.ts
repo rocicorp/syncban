@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ZeroRouteImport } from './routes/zero.route'
 import { Route as PowersyncRouteImport } from './routes/powersync.route'
+import { Route as ElectricRouteImport } from './routes/electric.route'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -26,6 +27,12 @@ const ZeroRouteRoute = ZeroRouteImport.update({
 const PowersyncRouteRoute = PowersyncRouteImport.update({
   id: '/powersync',
   path: '/powersync',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ElectricRouteRoute = ElectricRouteImport.update({
+  id: '/electric',
+  path: '/electric',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -44,6 +51,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/electric': {
+      id: '/electric'
+      path: '/electric'
+      fullPath: '/electric'
+      preLoaderRoute: typeof ElectricRouteImport
       parentRoute: typeof rootRoute
     }
     '/powersync': {
@@ -67,12 +81,14 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
   '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
   '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
@@ -80,27 +96,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
   '/powersync': typeof PowersyncRouteRoute
   '/zero': typeof ZeroRouteRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/powersync' | '/zero'
+  fullPaths: '/' | '/electric' | '/powersync' | '/zero'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/powersync' | '/zero'
-  id: '__root__' | '/' | '/powersync' | '/zero'
+  to: '/' | '/electric' | '/powersync' | '/zero'
+  id: '__root__' | '/' | '/electric' | '/powersync' | '/zero'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ElectricRouteRoute: typeof ElectricRouteRoute
   PowersyncRouteRoute: typeof PowersyncRouteRoute
   ZeroRouteRoute: typeof ZeroRouteRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ElectricRouteRoute: ElectricRouteRoute,
   PowersyncRouteRoute: PowersyncRouteRoute,
   ZeroRouteRoute: ZeroRouteRoute,
 }
@@ -116,12 +135,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/electric",
         "/powersync",
         "/zero"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/electric": {
+      "filePath": "electric.route.tsx"
     },
     "/powersync": {
       "filePath": "powersync.route.tsx"

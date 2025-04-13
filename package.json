@@ -9,6 +9,7 @@
     "start": "vinxi start"
   },
   "dependencies": {
+    "@electric-sql/react": "^1.0.3",
     "@hello-pangea/dnd": "^18.0.1",
     "@powersync/react": "^1.5.2",
     "@powersync/web": "^1.18.0",

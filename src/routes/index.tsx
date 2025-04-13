@@ -23,6 +23,12 @@ function Home() {
         >
           PowerSync UI
         </button>
+        <button
+          onClick={() => navigate({ to: "/electric" })}
+          className="ui-button electric"
+        >
+          Electric UI
+        </button>
       </div>
     </div>
   );
