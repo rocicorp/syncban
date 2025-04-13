@@ -19,6 +19,7 @@
     "@tanstack/react-router-devtools": "^1.115.3",
     "@tanstack/react-start": "^1.115.3",
     "fractional-indexing": "^3.2.0",
+    "js-cookie": "^3.0.5",
     "nanoid": "^5.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -27,6 +28,7 @@
     "vinxi": "0.5.3"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.5.4",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",

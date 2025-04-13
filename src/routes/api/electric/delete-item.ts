@@ -8,7 +8,9 @@ export const APIRoute = createAPIFileRoute("/api/electric/delete-item")({
     const { id } = body;
 
     if (!id) {
-      throw json({ error: "Missing required field: id" }, { status: 400 });
+      return new Response("Missing required fields", {
+        status: 400,
+      });
     }
 
     // Delete the item
@@ -18,7 +20,9 @@ export const APIRoute = createAPIFileRoute("/api/electric/delete-item")({
     `;
 
     if (result.count === 0) {
-      throw json({ error: "Item not found" }, { status: 404 });
+      return new Response("Item not found", {
+        status: 404,
+      });
     }
 
     return json({ message: "Item deleted successfully" });

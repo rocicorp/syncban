@@ -8,7 +8,9 @@ export const APIRoute = createAPIFileRoute("/api/electric/move-item")({
     const body = await request.json();
     const { taskID, columnID, index } = body;
     if (!taskID || !columnID || index === undefined) {
-      throw json({ error: "Missing required fields" }, { status: 400 });
+      return new Response("Missing required fields", {
+        status: 400,
+      });
     }
     // Get the current items
     const items = await sql`
@@ -32,7 +34,9 @@ export const APIRoute = createAPIFileRoute("/api/electric/move-item")({
     `;
 
     if (result.count === 0) {
-      throw json({ error: "Item not found" }, { status: 404 });
+      return new Response("Item not found", {
+        status: 404,
+      });
     }
 
     return json({ message: "Item moved successfully" });

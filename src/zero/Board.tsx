@@ -4,6 +4,7 @@ import KanbanBoard, { AddTaskRequest } from "../components/KanbanBoard";
 import { Schema } from "./schema";
 import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
+import { getOrCreateUserId } from "~/utils/user";
 
 export default function Board() {
   const z = useZero<Schema>();
@@ -14,17 +15,9 @@ export default function Board() {
   );
 
   const mapped = columns.map((column) => {
-    const tasks = column.items.map((item) => {
-      const avatarId = Math.floor(Math.random() * 70) + 1;
-      const avatarUrl = `https://i.pravatar.cc/40?img=${avatarId}`;
-      return {
-        ...item,
-        avatarUrl,
-      };
-    });
     return {
       ...column,
-      tasks,
+      tasks: column.items,
     };
   });
 
@@ -46,6 +39,7 @@ export default function Board() {
         title: task.title,
         body: "",
         order,
+        creatorID: getOrCreateUserId(),
       });
     },
     [mapped, z]

@@ -10,7 +10,22 @@ export const APIRoute = createAPIFileRoute("/api/electric/create-item")({
 
     // Validate required fields
     if (!body.column_id || !body.title || !body.body) {
-      throw json({ error: "Missing required fields" }, { status: 400 });
+      return new Response("Missing required fields", {
+        status: 400,
+      });
+    }
+
+    // Get creator_id from cookie
+    const cookieHeader = request.headers.get("cookie");
+    const cookies = Object.fromEntries(
+      cookieHeader?.split(";").map((cookie) => cookie.trim().split("=")) ?? []
+    );
+    const creator_id = cookies["syncban_user_id"];
+
+    if (!creator_id) {
+      return new Response("User not authenticated", {
+        status: 401,
+      });
     }
 
     // Generate a unique ID
@@ -30,8 +45,8 @@ export const APIRoute = createAPIFileRoute("/api/electric/create-item")({
 
     // Insert the new item
     const [newItem] = await sql`
-        INSERT INTO "item" (id, column_id, title, body, "order")
-        VALUES (${id}, ${body.column_id}, ${body.title}, ${body.body}, ${order})
+        INSERT INTO "item" (id, column_id, title, body, "order", creator_id)
+        VALUES (${id}, ${body.column_id}, ${body.title}, ${body.body}, ${order}, ${creator_id})
         RETURNING *
       `;
 

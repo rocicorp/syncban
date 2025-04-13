@@ -16,6 +16,8 @@ export default function Electric() {
     },
   });
 
+  console.log({ items });
+
   const onAddTask = async (task: AddTaskRequest) => {
     try {
       const response = await fetch("/api/electric/create-item", {
@@ -23,6 +25,7 @@ export default function Electric() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           column_id: task.columnId,
           title: task.title,
@@ -42,12 +45,10 @@ export default function Electric() {
     const tasks = items.data
       .filter((item) => item.column_id === column.id)
       .map((row) => {
-        const avatarId = Math.floor(Math.random() * 70) + 1;
-        const avatarUrl = `https://i.pravatar.cc/40?img=${avatarId}`;
         return {
           ...row,
           columnID: row.column_id,
-          avatarUrl,
+          creatorID: row.creator_id,
         };
       });
     tasks.sort((a: any, b: any) => {
@@ -69,6 +70,7 @@ export default function Electric() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           id: taskId,
         }),
@@ -93,6 +95,7 @@ export default function Electric() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           taskID: task.taskID,
           columnID: task.columnID,

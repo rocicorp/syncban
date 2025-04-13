@@ -7,10 +7,10 @@ export const APIRoute = createAPIFileRoute("/api/electric/shape")({
     const p = new URLSearchParams(url.searchParams);
 
     // Add our source credentials
-    p.append("source_id", "cf8d67c8-bf4a-4eb3-badd-5af7341719ac");
+    p.append("source_id", "dddaf990-444f-47c5-86c6-e5a9a6845469");
     p.append(
       "source_secret",
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJjZjhkNjdjOC1iZjRhLTRlYjMtYmFkZC01YWY3MzQxNzE5YWMiLCJpYXQiOjE3NDQyMzYwNzF9.uO06tfAbQkhEes8WgfAkIrbYKBifyPje7LGLCE2qGiU"
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJkZGRhZjk5MC00NDRmLTQ3YzUtODZjNi1lNWE5YTY4NDU0NjkiLCJpYXQiOjE3NDQ1MTE2MDZ9.GQ_p-2GEV3meUX8KA2hvsW3DGiOXUEBRNxRQTCVxiM4"
     );
 
     const originURL = "https://api.electric-sql.cloud/v1/shape?" + p.toString();

@@ -9,14 +9,14 @@ export type Column = {
   id: string;
   name: string;
   order: string;
-  tasks: Task[];
+  tasks: Readonly<Task[]>;
 };
 
 export type Task = {
   id: string;
   title: string;
   order: string;
-  avatarUrl: string;
+  creatorID: string;
 };
 
 export type AddTaskRequest = {
@@ -73,6 +73,26 @@ export default function KanbanBoard({
     }
   };
 
+  // generate avatarID by hashing creatorID
+  const hashCode = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  };
+
+  const getAvatarId = (creatorID: string) => {
+    const hash = hashCode(creatorID);
+    return (hash % 70) + 1; // 70 is the number of available avatars
+  };
+
+  const getAvatarUrl = (creatorID: string) => {
+    const avatarId = getAvatarId(creatorID);
+    return `https://i.pravatar.cc/40?img=${avatarId}`;
+  };
+
   return (
     <div>
       <h1 className="app-title">Project Kanban Board</h1>
@@ -122,7 +142,7 @@ export default function KanbanBoard({
                               >
                                 <img
                                   className="avatar"
-                                  src={task.avatarUrl}
+                                  src={getAvatarUrl(task.creatorID)}
                                   alt="Avatar"
                                 />
                                 <span>{task.title}</span>

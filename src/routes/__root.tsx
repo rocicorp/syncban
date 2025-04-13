@@ -11,6 +11,9 @@ import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import appCss from "~/styles/app.css?url";
 import { seo } from "~/utils/seo";
+import { getOrCreateUserId } from "~/utils/user";
+
+getOrCreateUserId();
 
 export const Route = createRootRoute({
   head: () => ({

@@ -28,5 +28,5 @@ destination = "/data"
 
 [env]
 ZERO_REPLICA_FILE = "/data/sync-replica.db"
-ZERO_UPSTREAM_DB="postgresql://postgres:kanbanisfordemo@db.kymjheqzdcrxemndpecn.supabase.co:5432/postgres?sslmode=disable"
+ZERO_UPSTREAM_DB="postgresql://postgres:kanbanisfordemo@db.vmkjxjrmjfesmczdiwjf.supabase.co:5432/postgres?sslmode=disable"
 LOG_LEVEL = "debug"

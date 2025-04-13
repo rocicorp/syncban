@@ -24,6 +24,7 @@ const item = table("item")
     title: string(),
     body: string(),
     order: string(),
+    creatorID: string().from("creator_id"),
   })
   .primaryKey("id");
 
