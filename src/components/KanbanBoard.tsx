@@ -11,7 +11,7 @@ export type Column = {
   id: string;
   name: string;
   order: string;
-  tasks: Readonly<Task[]>;
+  tasks: Task[];
 };
 
 export type Task = {

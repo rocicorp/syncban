@@ -17,6 +17,7 @@ export async function matchStream<T extends Row<unknown>>({
   operations,
   matchFn,
   timeout = 10000,
+  signal,
 }: {
   stream: ShapeStream<T>;
   operations: Array<`insert` | `update` | `delete`>;
@@ -28,8 +29,21 @@ export async function matchStream<T extends Row<unknown>>({
     message: ChangeMessage<T>;
   }) => boolean;
   timeout?: number;
-}): Promise<ChangeMessage<T>> {
-  return new Promise<ChangeMessage<T>>((resolve, reject) => {
+  signal?: AbortSignal;
+}): Promise<ChangeMessage<T> | undefined> {
+  return new Promise<ChangeMessage<T> | undefined>((resolve, reject) => {
+    if (signal?.aborted) {
+      cleanup();
+      return resolve(undefined);
+    }
+
+    const handleAbort = () => {
+      cleanup();
+      resolve(undefined);
+    };
+
+    signal?.addEventListener("abort", handleAbort);
+
     const unsubscribe = stream.subscribe((messages) => {
       const message = messages.filter(isChangeMessage).find(
         (message) =>
@@ -43,13 +57,24 @@ export async function matchStream<T extends Row<unknown>>({
     });
 
     const timeoutId = setTimeout(() => {
+      cleanup();
       console.error(`matchStream timed out after ${timeout}ms`);
-      reject(`matchStream timed out after ${timeout}ms`);
+      reject(
+        new DOMException(
+          `matchStream timed out after ${timeout}ms`,
+          "TimeoutError"
+        )
+      );
     }, timeout);
 
-    function finish(message: ChangeMessage<T>) {
+    function cleanup() {
       clearTimeout(timeoutId);
       unsubscribe();
+      signal?.removeEventListener("abort", handleAbort);
+    }
+
+    function finish(message: ChangeMessage<T>) {
+      cleanup();
       return resolve(message);
     }
   });

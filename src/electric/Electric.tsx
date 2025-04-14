@@ -5,11 +5,26 @@ import KanbanBoard, {
   Task,
 } from "../components/KanbanBoard";
 import { matchStream } from "./match-stream";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useMutationState } from "@tanstack/react-query";
+
+const shapeURL = import.meta.env.VITE_ELECTRIC_SHAPE_URL;
+if (!shapeURL) {
+  throw new Error("VITE_ELECTRIC_SHAPE_URL is not defined");
+}
 
 export default function Electric() {
   const columnShape = {
-    url: new URL("/api/electric/shape", location.href).toString(),
+    // TODO: I could not figure out how to get tanstack to serve a streaming
+    // response in order to proxy the shape stream. Thus I had to do this
+    // insecurely for the demo.
+    //
+    // There is surely some way to add a custom handler at the Nitro level and
+    // handle the request directly:
+    // https://discord.com/channels/719702312431386674/1354923811291791371/1355228008776208405
+    //
+    // Probably the Nitro docs are the place to look. Anyway not important for
+    // demo purposes.
+    url: shapeURL,
     params: {
       table: "column",
     },
@@ -24,15 +39,18 @@ export default function Electric() {
 
   const items = useShape(itemShape);
 
-  console.log({ columns, items });
-
   const addTask = async (task: AddTaskRequest) => {
+    const abortController = new AbortController();
     const itemsStream = getShapeStream<any>(itemShape);
 
     const findInsertPromise = matchStream({
       stream: itemsStream,
       operations: [`insert`],
       matchFn: ({ message }) => message.value.id === task.id,
+      signal: abortController.signal,
+    }).then((res) => {
+      console.log("Item inserted in stream", res);
+      return res;
     });
 
     const response = fetch("/api/electric/create-item", {
@@ -42,9 +60,31 @@ export default function Electric() {
       },
       credentials: "include",
       body: JSON.stringify(task),
-    });
+    })
+      .then((res) => {
+        console.log("HTTP Response received");
+        return res;
+      })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Failed to create item");
+        }
+      });
 
-    return await Promise.all([findInsertPromise, response]);
+    const responseError = response.then(
+      // swallow resolution
+      () => new Promise(() => {}),
+      (err) => {
+        abortController.abort();
+        console.error("Error creating item", err);
+        Promise.reject(err);
+      }
+    );
+
+    return await Promise.race([
+      responseError,
+      Promise.all([findInsertPromise, response]),
+    ]);
   };
 
   const onRemoveTask = async (taskId: string) => {
@@ -116,13 +156,38 @@ export default function Electric() {
           creatorID: row.creator_id,
         };
       });
-    tasks.sort((a: any, b: any) => {
-      return a.order.localeCompare(b.order);
-    });
     return {
       ...column,
       tasks,
     } as unknown as Column;
+  });
+
+  const pending: AddTaskRequest[] = useMutationState({
+    filters: { status: `pending` },
+    select: (mutation) => mutation.state.context as AddTaskRequest,
+  }).filter((item) => item !== undefined);
+
+  // Merged the pending items into the mapped data
+  pending.forEach((item) => {
+    const col = mapped.find((col) => col.id === item.columnID);
+    if (!col) {
+      throw new Error(`Column ${item.columnID} not found`);
+    }
+    // According to https://github.com/electric-sql/electric/blob/main/examples/tanstack/src/Example.tsx#L93
+    // we can end up with duplicates here momentarily, so we need to check that the new item isn't already
+    // present.
+    const existing = col.tasks.find((task) => task.id === item.id);
+    if (existing) {
+      return;
+    }
+    col.tasks.push(item);
+  });
+
+  // Finally we need to sort the tasks and columns by order.
+  mapped.forEach((col) => {
+    col.tasks.sort((a: any, b: any) => {
+      return a.order.localeCompare(b.order);
+    });
   });
   mapped.sort((a: any, b: any) => {
     return a.order.localeCompare(b.order);
