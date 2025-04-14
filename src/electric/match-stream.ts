@@ -5,6 +5,12 @@ import {
   isChangeMessage,
 } from "@electric-sql/client";
 
+export type MatchOperation = `insert` | `update` | `delete`;
+export type MatchFunction<T extends Row<unknown>> = (args: {
+  operationType: string;
+  message: ChangeMessage<T>;
+}) => boolean;
+
 /**
  * Helper that returns a promise which resolves when a message is received from
  * the shape stream that matches the given operations and the match function.
@@ -20,14 +26,8 @@ export async function matchStream<T extends Row<unknown>>({
   signal,
 }: {
   stream: ShapeStream<T>;
-  operations: Array<`insert` | `update` | `delete`>;
-  matchFn: ({
-    operationType,
-    message,
-  }: {
-    operationType: string;
-    message: ChangeMessage<T>;
-  }) => boolean;
+  operations: Array<MatchOperation>;
+  matchFn: MatchFunction<T>;
   timeout?: number;
   signal?: AbortSignal;
 }): Promise<ChangeMessage<T> | undefined> {

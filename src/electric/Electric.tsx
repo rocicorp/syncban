@@ -1,10 +1,12 @@
 import { getShapeStream, useShape } from "@electric-sql/react";
+import { type Row } from "@electric-sql/client";
 import KanbanBoard, {
   AddTaskRequest,
   Column,
+  MoveTaskRequest,
   Task,
 } from "../components/KanbanBoard";
-import { matchStream } from "./match-stream";
+import { MatchFunction, MatchOperation, matchStream } from "./match-stream";
 import { useMutation, useMutationState } from "@tanstack/react-query";
 
 const shapeURL = import.meta.env.VITE_ELECTRIC_SHAPE_URL;
@@ -12,6 +14,14 @@ if (!shapeURL) {
   throw new Error("VITE_ELECTRIC_SHAPE_URL is not defined");
 }
 
+/**
+ * This component adapts the shared Kanban component to the Electric sync
+ * service and implements optimistic mutations per Electric's advice.
+ *
+ * The optimistic mutation code is adapted from:
+ * https://github.com/electric-sql/electric/blob/main/examples/tanstack/src/Example.tsx#L94
+ * but with some additional error handling.
+ */
 export default function Electric() {
   const columnShape = {
     // TODO: I could not figure out how to get tanstack to serve a streaming
@@ -35,31 +45,50 @@ export default function Electric() {
       table: "item",
     },
   };
-  const columns = useShape(columnShape);
 
-  const items = useShape(itemShape);
+  const columns = useShape(columnShape).data;
+  const items = useShape(itemShape).data.map(
+    ({ id, column_id, creator_id, title, order }) => {
+      return {
+        id,
+        columnID: column_id,
+        creatorID: creator_id,
+        title,
+        order,
+      };
+    }
+  );
 
-  const addTask = async (task: AddTaskRequest) => {
+  // This helper function executes an HTTP mutation then waits for the
+  // corresponding change to show up in the shape stream. This is not
+  // a perfect implementation, but apparently this is all being redone
+  // anyway: https://github.com/TanStack/optimistic.
+  const fetchAndWaitForShape = async <T extends Row<unknown>>(
+    url: string,
+    body: any,
+    matchOp: MatchOperation,
+    matchFn: MatchFunction<T>
+  ) => {
     const abortController = new AbortController();
     const itemsStream = getShapeStream<any>(itemShape);
 
     const findInsertPromise = matchStream({
       stream: itemsStream,
       operations: [`insert`],
-      matchFn: ({ message }) => message.value.id === task.id,
+      matchFn,
       signal: abortController.signal,
     }).then((res) => {
-      console.log("Item inserted in stream", res);
+      console.log("Change found in stream", res);
       return res;
     });
 
-    const response = fetch("/api/electric/create-item", {
+    const response = fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify(task),
+      body: JSON.stringify(body),
     })
       .then((res) => {
         console.log("HTTP Response received");
@@ -67,7 +96,7 @@ export default function Electric() {
       })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Failed to create item");
+          throw new Error("HTTP request failed");
         }
       });
 
@@ -76,67 +105,54 @@ export default function Electric() {
       () => new Promise(() => {}),
       (err) => {
         abortController.abort();
-        console.error("Error creating item", err);
+        console.error("Error sending request", err);
         Promise.reject(err);
       }
     );
 
+    // Wait for *either* an http error (in which case we should give up on
+    // stream), *or* both the http result and the stream result.
     return await Promise.race([
       responseError,
       Promise.all([findInsertPromise, response]),
     ]);
   };
 
-  const onRemoveTask = async (taskId: string) => {
-    const itemsStream = getShapeStream<any>(itemShape);
-
-    const findDeletePromise = matchStream({
-      stream: itemsStream,
-      operations: [`delete`],
-      matchFn: ({ message }) => message.value.id === taskId,
-    });
-
-    const response = fetch("/api/electric/delete-item", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: taskId,
-      }),
-    });
-
-    return await Promise.all([findDeletePromise, response]);
+  const addTask = async (task: AddTaskRequest) => {
+    await fetchAndWaitForShape(
+      "/api/electric/create-item",
+      task,
+      "insert",
+      ({ message }) => {
+        return message.value.id === task.id;
+      }
+    );
   };
 
-  const onMoveTask = async (task: {
+  const removeTask = async (taskId: string) => {
+    await fetchAndWaitForShape(
+      "/api/electric/delete-item",
+      { id: taskId },
+      "delete",
+      ({ message }) => {
+        return message.value.id === taskId;
+      }
+    );
+  };
+
+  const moveTask = async (task: {
     taskID: string;
     columnID: string;
     index: number;
   }) => {
-    const itemsStream = getShapeStream<any>(itemShape);
-
-    const findUpdatePromise = matchStream({
-      stream: itemsStream,
-      operations: [`update`],
-      matchFn: ({ message }) => message.value.id === task.taskID,
-    });
-
-    const response = fetch("/api/electric/move-item", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        taskID: task.taskID,
-        columnID: task.columnID,
-        index: task.index,
-      }),
-    });
-
-    return await Promise.all([findUpdatePromise, response]);
+    await fetchAndWaitForShape(
+      "/api/electric/move-item",
+      task,
+      "update",
+      ({ message }) => {
+        return message.value.id === task.taskID;
+      }
+    );
   };
 
   const { mutateAsync: addItemMut } = useMutation({
@@ -146,48 +162,86 @@ export default function Electric() {
     onMutate: (task) => task,
   });
 
-  const mapped = columns.data.map((column) => {
-    const tasks = items.data
-      .filter((item) => item.column_id === column.id)
+  const { mutateAsync: removeItemMut } = useMutation({
+    scope: { id: `items` },
+    mutationKey: [`delete-item`],
+    mutationFn: (taskId: string) => removeTask(taskId),
+    onMutate: (taskId) => taskId,
+  });
+
+  const { mutateAsync: moveItemMut } = useMutation({
+    scope: { id: `items` },
+    mutationKey: [`move-item`],
+    mutationFn: (task: { taskID: string; columnID: string; index: number }) =>
+      moveTask(task),
+    onMutate: (task) => task,
+  });
+
+  // Merged the pending add into the synced items
+  debugger;
+  const pendingAdds: AddTaskRequest[] = useMutationState({
+    filters: { status: `pending`, mutationKey: ["add-item"] },
+    select: (mutation) => mutation.state.context as AddTaskRequest,
+  }).filter((item) => item !== undefined);
+
+  pendingAdds.forEach((item) => {
+    // Remove existing item if it exists.
+    // According to https://github.com/electric-sql/electric/blob/main/examples/tanstack/src/Example.tsx#L93
+    // we can end up with duplicates here momentarily, so we need to check that
+    // the new item isn't already present.
+    const existing = items.findIndex((task) => task.id === item.id);
+    if (existing !== -1) {
+      items.splice(existing, 1);
+    }
+    items.push(item);
+  });
+
+  // Merge the pending deletes into the synced items
+  const pendingDeletes = useMutationState({
+    filters: { status: `pending`, mutationKey: ["delete-item"] },
+    select: (mutation) => mutation.state.context as string,
+  }).filter((item) => item !== undefined);
+
+  pendingDeletes.forEach((item) => {
+    const existing = items.findIndex((task) => task.id === item);
+    if (existing !== -1) {
+      items.splice(existing, 1);
+    }
+  });
+
+  // Merge the pending moves into the mapped data
+  // TODO: Possibly this would be easier w/ electric to just represent as a put
+  // of the whole data item, then could treat the same as add basically.
+  const pendingMoves = useMutationState({
+    filters: { status: `pending`, mutationKey: ["move-item"] },
+    select: (mutation) => mutation.state.context as MoveTaskRequest,
+  }).filter((item) => item !== undefined);
+  pendingMoves.forEach((item) => {
+    const existing = items.findIndex((task) => task.id === item.taskID);
+    if (existing !== -1) {
+      items[existing].columnID = item.columnID;
+      items[existing].order = item.index;
+    }
+  });
+
+  // Now map the data into the shape needed by UI.
+  const mapped = columns.map((column) => {
+    const tasks = items
+      .filter((item) => item.columnID === column.id)
       .map((row) => {
         return {
           ...row,
-          columnID: row.column_id,
-          creatorID: row.creator_id,
+          columnID: row.columnID,
+          creatorID: row.columnID,
         };
+      })
+      .sort((a: any, b: any) => {
+        return a.order.localeCompare(b.order);
       });
     return {
       ...column,
       tasks,
     } as unknown as Column;
-  });
-
-  const pending: AddTaskRequest[] = useMutationState({
-    filters: { status: `pending` },
-    select: (mutation) => mutation.state.context as AddTaskRequest,
-  }).filter((item) => item !== undefined);
-
-  // Merged the pending items into the mapped data
-  pending.forEach((item) => {
-    const col = mapped.find((col) => col.id === item.columnID);
-    if (!col) {
-      throw new Error(`Column ${item.columnID} not found`);
-    }
-    // According to https://github.com/electric-sql/electric/blob/main/examples/tanstack/src/Example.tsx#L93
-    // we can end up with duplicates here momentarily, so we need to check that the new item isn't already
-    // present.
-    const existing = col.tasks.find((task) => task.id === item.id);
-    if (existing) {
-      return;
-    }
-    col.tasks.push(item);
-  });
-
-  // Finally we need to sort the tasks and columns by order.
-  mapped.forEach((col) => {
-    col.tasks.sort((a: any, b: any) => {
-      return a.order.localeCompare(b.order);
-    });
   });
   mapped.sort((a: any, b: any) => {
     return a.order.localeCompare(b.order);
@@ -197,8 +251,8 @@ export default function Electric() {
     <KanbanBoard
       columns={mapped}
       onAddTask={addItemMut}
-      onRemoveTask={onRemoveTask}
-      onMoveTask={onMoveTask}
+      onRemoveTask={removeItemMut}
+      onMoveTask={moveItemMut}
     />
   );
 }
