@@ -15,6 +15,7 @@
     "@powersync/web": "^1.18.0",
     "@rocicorp/zero": "^0.18.2025040300",
     "@supabase/supabase-js": "^2.49.4",
+    "@tanstack/react-query": "^5.74.0",
     "@tanstack/react-router": "^1.115.3",
     "@tanstack/react-router-devtools": "^1.115.3",
     "@tanstack/react-start": "^1.115.3",

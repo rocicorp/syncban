@@ -4,6 +4,8 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import { generateKeyBetween } from "fractional-indexing";
+import { nanoid } from "nanoid";
 
 export type Column = {
   id: string;
@@ -19,9 +21,8 @@ export type Task = {
   creatorID: string;
 };
 
-export type AddTaskRequest = {
-  columnId: string;
-  title: string;
+export type AddTaskRequest = Task & {
+  columnID: string;
 };
 
 export type MoveTaskRequest = {
@@ -65,9 +66,20 @@ export default function KanbanBoard({
   ) => {
     if (e.key === "Enter") {
       const input = e.target as HTMLInputElement;
+      const col = columns.find((col) => col.id === columnID);
+      if (!col) {
+        throw new Error(`Column ${columnID} not found`);
+      }
+      const order = generateKeyBetween(
+        col.tasks[col.tasks.length - 1]?.order ?? null,
+        null
+      );
       onAddTask({
-        columnId: columnID,
+        columnID: columnID,
         title: input.value,
+        id: nanoid(),
+        order,
+        creatorID: "42",
       });
       input.value = "";
     }

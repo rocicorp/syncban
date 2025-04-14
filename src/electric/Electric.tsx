@@ -1,45 +1,110 @@
-import { useShape } from "@electric-sql/react";
-import KanbanBoard, { AddTaskRequest, Column } from "../components/KanbanBoard";
+import { getShapeStream, useShape } from "@electric-sql/react";
+import KanbanBoard, {
+  AddTaskRequest,
+  Column,
+  Task,
+} from "../components/KanbanBoard";
+import { matchStream } from "./match-stream";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Electric() {
-  const columns = useShape({
+  const columnShape = {
     url: new URL("/api/electric/shape", location.href).toString(),
     params: {
       table: "column",
     },
-  });
-
-  const items = useShape({
-    url: new URL("/api/electric/shape", location.href).toString(),
+  };
+  const itemShape = {
+    ...columnShape,
     params: {
       table: "item",
     },
-  });
-
-  console.log({ items });
-
-  const onAddTask = async (task: AddTaskRequest) => {
-    try {
-      const response = await fetch("/api/electric/create-item", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          column_id: task.columnId,
-          title: task.title,
-          body: "unused",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create item");
-      }
-    } catch (error) {
-      console.error("Error creating item:", error);
-    }
   };
+  const columns = useShape(columnShape);
+
+  const items = useShape(itemShape);
+
+  console.log({ columns, items });
+
+  const addTask = async (task: AddTaskRequest) => {
+    const itemsStream = getShapeStream<any>(itemShape);
+
+    const findInsertPromise = matchStream({
+      stream: itemsStream,
+      operations: [`insert`],
+      matchFn: ({ message }) => message.value.id === task.id,
+    });
+
+    const response = fetch("/api/electric/create-item", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(task),
+    });
+
+    return await Promise.all([findInsertPromise, response]);
+  };
+
+  const onRemoveTask = async (taskId: string) => {
+    const itemsStream = getShapeStream<any>(itemShape);
+
+    const findDeletePromise = matchStream({
+      stream: itemsStream,
+      operations: [`delete`],
+      matchFn: ({ message }) => message.value.id === taskId,
+    });
+
+    const response = fetch("/api/electric/delete-item", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: taskId,
+      }),
+    });
+
+    return await Promise.all([findDeletePromise, response]);
+  };
+
+  const onMoveTask = async (task: {
+    taskID: string;
+    columnID: string;
+    index: number;
+  }) => {
+    const itemsStream = getShapeStream<any>(itemShape);
+
+    const findUpdatePromise = matchStream({
+      stream: itemsStream,
+      operations: [`update`],
+      matchFn: ({ message }) => message.value.id === task.taskID,
+    });
+
+    const response = fetch("/api/electric/move-item", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        taskID: task.taskID,
+        columnID: task.columnID,
+        index: task.index,
+      }),
+    });
+
+    return await Promise.all([findUpdatePromise, response]);
+  };
+
+  const { mutateAsync: addItemMut } = useMutation({
+    scope: { id: `items` },
+    mutationKey: [`add-item`],
+    mutationFn: (task: AddTaskRequest) => addTask(task),
+    onMutate: (task) => task,
+  });
 
   const mapped = columns.data.map((column) => {
     const tasks = items.data
@@ -63,58 +128,10 @@ export default function Electric() {
     return a.order.localeCompare(b.order);
   });
 
-  const onRemoveTask = async (taskId: string) => {
-    try {
-      const response = await fetch("/api/electric/delete-item", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          id: taskId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete item");
-      }
-    } catch (error) {
-      console.error("Error deleting item:", error);
-    }
-  };
-
-  const onMoveTask = async (task: {
-    taskID: string;
-    columnID: string;
-    index: number;
-  }) => {
-    try {
-      const response = await fetch("/api/electric/move-item", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          taskID: task.taskID,
-          columnID: task.columnID,
-          index: task.index,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to move item");
-      }
-    } catch (error) {
-      console.error("Error moving item:", error);
-    }
-  };
-
   return (
     <KanbanBoard
       columns={mapped}
-      onAddTask={onAddTask}
+      onAddTask={addItemMut}
       onRemoveTask={onRemoveTask}
       onMoveTask={onMoveTask}
     />

@@ -34,9 +34,9 @@ export function Board() {
   });
 
   const onAddTask = async (task: AddTaskRequest) => {
-    const col = mapped.find((col) => col.id === task.columnId);
+    const col = mapped.find((col) => col.id === task.columnID);
     if (!col) {
-      throw new Error(`Column ${task.columnId} not found`);
+      throw new Error(`Column ${task.columnID} not found`);
     }
 
     const order = generateKeyBetween(
@@ -46,7 +46,7 @@ export function Board() {
 
     await db.execute(
       'INSERT INTO item (id, column_id, title, body, "order") VALUES (?, ?, ?, ?, ?)',
-      [nanoid(), task.columnId, task.title, "", order]
+      [nanoid(), task.columnID, task.title, "", order]
     );
   };
 

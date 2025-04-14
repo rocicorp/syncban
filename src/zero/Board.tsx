@@ -23,9 +23,9 @@ export default function Board() {
 
   const handleAddTask = useCallback(
     async (task: AddTaskRequest) => {
-      const col = mapped.find((col) => col.id === task.columnId);
+      const col = mapped.find((col) => col.id === task.columnID);
       if (!col) {
-        throw new Error(`Column ${task.columnId} not found`);
+        throw new Error(`Column ${task.columnID} not found`);
       }
 
       const order = generateKeyBetween(
@@ -35,7 +35,7 @@ export default function Board() {
 
       z.mutate.item.insert({
         id: nanoid(),
-        columnID: task.columnId,
+        columnID: task.columnID,
         title: task.title,
         body: "",
         order,
