@@ -1,17 +1,15 @@
 import { json } from "@tanstack/react-start";
 import { createAPIFileRoute } from "@tanstack/react-start/api";
-import { generateKeyBetween } from "fractional-indexing";
 import { sql } from "../../../db";
+import { MoveTaskRequest } from "~/components/KanbanBoard";
 
 export const APIRoute = createAPIFileRoute("/api/electric/move-item")({
   POST: async ({ request, params }) => {
     const body = await request.json();
-    const { taskID, columnID, index } = body;
-    if (!taskID || !columnID || index === undefined) {
-      return new Response("Missing required fields", {
-        status: 400,
-      });
-    }
+
+    // TODO: Validate
+    const { taskID, columnID, order } = body as MoveTaskRequest;
+
     // Get the current items
     const items = await sql`
       SELECT *
@@ -20,11 +18,6 @@ export const APIRoute = createAPIFileRoute("/api/electric/move-item")({
       AND id != ${taskID}
       ORDER BY "order" ASC
     `;
-
-    const order = generateKeyBetween(
-      items[index - 1]?.order ?? null,
-      items[index]?.order ?? null
-    );
 
     // Update the item
     const result = await sql`

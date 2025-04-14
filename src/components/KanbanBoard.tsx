@@ -6,6 +6,7 @@ import {
 } from "@hello-pangea/dnd";
 import { generateKeyBetween } from "fractional-indexing";
 import { nanoid } from "nanoid";
+import { must } from "~/utils/assert";
 
 export type Column = {
   id: string;
@@ -28,7 +29,7 @@ export type AddTaskRequest = Task & {
 export type MoveTaskRequest = {
   taskID: string;
   columnID: string;
-  index: number;
+  order: string;
 };
 
 export default function KanbanBoard({
@@ -43,6 +44,7 @@ export default function KanbanBoard({
   onMoveTask: (task: MoveTaskRequest) => void;
 }) {
   const handleDragEnd = (result: DropResult) => {
+    debugger;
     const { source, destination } = result;
     if (!destination) return;
 
@@ -53,10 +55,34 @@ export default function KanbanBoard({
       return;
     }
 
+    const taskID = result.draggableId;
+    let destColID = destination.droppableId;
+    let destIndex = destination.index;
+
+    const sourceCol = must(
+      columns.find((col) => col.tasks.some((task) => task.id === taskID))
+    );
+
+    const destCol = must(columns.find((col) => col.id === destColID));
+
+    if (sourceCol === destCol) {
+      const currentIndex = sourceCol.tasks.findIndex(
+        (task) => task.id === taskID
+      );
+      if (destIndex > currentIndex) {
+        destIndex++;
+      }
+    }
+
+    const order = generateKeyBetween(
+      destCol.tasks[destIndex - 1]?.order ?? null,
+      destCol.tasks[destIndex]?.order ?? null
+    );
+
     onMoveTask({
       taskID: result.draggableId,
       columnID: destination.droppableId,
-      index: destination.index,
+      order,
     });
   };
 

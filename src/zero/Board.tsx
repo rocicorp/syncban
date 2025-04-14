@@ -1,6 +1,9 @@
 import { useQuery, useZero } from "@rocicorp/zero/react";
 import { useCallback } from "react";
-import KanbanBoard, { AddTaskRequest } from "../components/KanbanBoard";
+import KanbanBoard, {
+  AddTaskRequest,
+  MoveTaskRequest,
+} from "../components/KanbanBoard";
 import { Schema } from "./schema";
 import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
@@ -53,23 +56,18 @@ export default function Board() {
   );
 
   const handleMoveTask = useCallback(
-    async (task: { taskID: string; columnID: string; index: number }) => {
-      const col = mapped.find((col) => col.id === task.columnID);
+    async (req: MoveTaskRequest) => {
+      const col = mapped.find((col) => col.id === req.columnID);
       if (!col) {
-        throw new Error(`Column ${task.columnID} not found`);
+        throw new Error(`Column ${req.columnID} not found`);
       }
 
-      const prev = col.tasks.filter((t) => t.id !== task.taskID);
-
-      const order = generateKeyBetween(
-        prev[task.index - 1]?.order ?? null,
-        prev[task.index]?.order ?? null
-      );
+      const prev = col.tasks.filter((t) => t.id !== req.taskID);
 
       z.mutate.item.update({
-        id: task.taskID,
-        columnID: task.columnID,
-        order,
+        id: req.taskID,
+        columnID: req.columnID,
+        order: req.order,
       });
     },
     [mapped, z]

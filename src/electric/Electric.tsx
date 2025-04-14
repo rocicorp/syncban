@@ -140,17 +140,13 @@ export default function Electric() {
     );
   };
 
-  const moveTask = async (task: {
-    taskID: string;
-    columnID: string;
-    index: number;
-  }) => {
+  const moveTask = async (req: MoveTaskRequest) => {
     await fetchAndWaitForShape(
       "/api/electric/move-item",
-      task,
+      req,
       "update",
       ({ message }) => {
-        return message.value.id === task.taskID;
+        return message.value.id === req.taskID;
       }
     );
   };
@@ -172,13 +168,12 @@ export default function Electric() {
   const { mutateAsync: moveItemMut } = useMutation({
     scope: { id: `items` },
     mutationKey: [`move-item`],
-    mutationFn: (task: { taskID: string; columnID: string; index: number }) =>
+    mutationFn: (task: { taskID: string; columnID: string; order: string }) =>
       moveTask(task),
     onMutate: (task) => task,
   });
 
   // Merged the pending add into the synced items
-  debugger;
   const pendingAdds: AddTaskRequest[] = useMutationState({
     filters: { status: `pending`, mutationKey: ["add-item"] },
     select: (mutation) => mutation.state.context as AddTaskRequest,
@@ -220,7 +215,7 @@ export default function Electric() {
     const existing = items.findIndex((task) => task.id === item.taskID);
     if (existing !== -1) {
       items[existing].columnID = item.columnID;
-      items[existing].order = item.index;
+      items[existing].order = item.order;
     }
   });
 
