@@ -18,3 +18,9 @@ Copy .env.example to .env and populate:
 ```
 npm run dev
 ```
+
+## TODO
+
+- Correctly populate creatorID
+- Implement write permissions
+- Implement server side of Powersync
