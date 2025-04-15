@@ -1,13 +1,17 @@
+// In KanbanBoard.tsx:
+
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
+  DragUpdate,
 } from "@hello-pangea/dnd";
 import { generateKeyBetween } from "fractional-indexing";
 import { nanoid } from "nanoid";
 import { DeepReadonly } from "node_modules/@rocicorp/zero/out/shared/src/json";
 import { must } from "~/utils/assert";
+import React from "react"; // Ensure React is imported
 
 export type Column = {
   id: string;
@@ -46,6 +50,35 @@ export default function KanbanBoard({
   onMoveTask: (task: MoveTaskRequest) => void;
   project?: string;
 }) {
+  // Add dragDestination state and handler
+  const [dragDestination, setDragDestination] = React.useState<string | null>(
+    null
+  );
+
+  const handleDragUpdate = (update: DragUpdate) => {
+    setDragDestination(
+      update.destination ? update.destination.droppableId : null
+    );
+  };
+
+  // Define a mapping from column (droppable) IDs to colors.
+  const columnColorMapping: { [key: string]: string } = columns.reduce(
+    (acc, col) => {
+      const normalizedName = col.name.toLowerCase().replace(" ", "");
+      let color = "";
+      if (normalizedName === "todo") {
+        color = "var(--color-yellow)";
+      } else if (normalizedName === "inprogress") {
+        color = "var(--color-pink)";
+      } else if (normalizedName === "done") {
+        color = "var(--color-green)";
+      }
+      acc[col.id] = color;
+      return acc;
+    },
+    {} as { [key: string]: string }
+  );
+
   const handleDragEnd = (result: DropResult) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -117,11 +150,15 @@ export default function KanbanBoard({
       <h2 className="subheader">
         Drag &amp; drop tasks to organize your workflow
       </h2>
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext
+        onDragEnd={handleDragEnd}
+        onDragUpdate={handleDragUpdate}
+      >
         <div className="kanban-board">
           {columns.map((column) => (
             <div
               className={`column ${column.name.toLowerCase().replace(" ", "")}`}
+              key={column.id}
             >
               <div className="column-header">
                 <h2>{column.name}</h2>
@@ -136,7 +173,7 @@ export default function KanbanBoard({
                   }
                 />
               </div>
-              <Droppable droppableId={column.id} key={column.id}>
+              <Droppable droppableId={column.id}>
                 {(provided, snapshot) => (
                   <div
                     className={`column-scroll ${snapshot.isDraggingOver ? "dragging-over" : ""}`}
@@ -150,30 +187,43 @@ export default function KanbanBoard({
                           index={index}
                           key={task.id}
                         >
-                          {(provided) => (
-                            <div
-                              className="task-card"
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <img
-                                className="avatar"
-                                src={getAvatarUrl(task.creatorID)}
-                                alt="Avatar"
-                              />
-                              <span>{task.title}</span>
-                              <button
-                                className="remove-task"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveTask(task.id);
+                          {(provided, snapshot) => {
+                            const extraStyle =
+                              snapshot.isDragging && dragDestination
+                                ? {
+                                    backgroundColor:
+                                      columnColorMapping[dragDestination],
+                                  }
+                                : {};
+                            return (
+                              <div
+                                className="task-card"
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  ...extraStyle,
                                 }}
                               >
-                                ×
-                              </button>
-                            </div>
-                          )}
+                                <img
+                                  className="avatar"
+                                  src={getAvatarUrl(task.creatorID)}
+                                  alt="Avatar"
+                                />
+                                <span>{task.title}</span>
+                                <button
+                                  className="remove-task"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveTask(task.id);
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          }}
                         </Draggable>
                       ))}
                       {provided.placeholder}
