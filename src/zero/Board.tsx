@@ -91,6 +91,7 @@ export default function Board() {
       onAddTask={handleAddTask}
       onRemoveTask={handleRemoveTask}
       onMoveTask={handleMoveTask}
+      project="zero"
     />
   );
 }
