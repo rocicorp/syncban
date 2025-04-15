@@ -8,6 +8,7 @@ import { Schema } from "./schema";
 import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
 import { getOrCreateUserId } from "~/utils/user";
+import { DeepReadonly } from "node_modules/@rocicorp/zero/out/shared/src/json";
 
 export default function Board() {
   const z = useZero<Schema>();
@@ -62,12 +63,23 @@ export default function Board() {
         throw new Error(`Column ${req.columnID} not found`);
       }
 
-      const prev = col.tasks.filter((t) => t.id !== req.taskID);
+      let destIndex = req.index;
+      const prevIndex = col.tasks.findIndex((task) => task.id === req.taskID);
+      if (prevIndex !== -1) {
+        if (prevIndex < destIndex) {
+          destIndex++;
+        }
+      }
+
+      const order = generateKeyBetween(
+        col.tasks[destIndex - 1]?.order ?? null,
+        col.tasks[destIndex]?.order ?? null
+      );
 
       z.mutate.item.update({
         id: req.taskID,
         columnID: req.columnID,
-        order: req.order,
+        order,
       });
     },
     [mapped, z]

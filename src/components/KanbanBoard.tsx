@@ -6,6 +6,7 @@ import {
 } from "@hello-pangea/dnd";
 import { generateKeyBetween } from "fractional-indexing";
 import { nanoid } from "nanoid";
+import { DeepReadonly } from "node_modules/@rocicorp/zero/out/shared/src/json";
 import { must } from "~/utils/assert";
 
 export type Column = {
@@ -38,7 +39,7 @@ export default function KanbanBoard({
   onRemoveTask,
   onMoveTask,
 }: {
-  columns: Column[];
+  columns: DeepReadonly<Column[]>;
   onAddTask: (task: AddTaskRequest) => void;
   onRemoveTask: (taskId: string) => void;
   onMoveTask: (task: MoveTaskRequest) => void;
