@@ -256,7 +256,7 @@ body {
 .task-list {
   display: flex;
   flex-direction: column;
-  min-height: 48px;
+  flex: 1;
 }
 
 .avatar {
