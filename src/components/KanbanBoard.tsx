@@ -29,7 +29,7 @@ export type AddTaskRequest = Task & {
 export type MoveTaskRequest = {
   taskID: string;
   columnID: string;
-  order: string;
+  index: number;
 };
 
 export default function KanbanBoard({
@@ -44,7 +44,6 @@ export default function KanbanBoard({
   onMoveTask: (task: MoveTaskRequest) => void;
 }) {
   const handleDragEnd = (result: DropResult) => {
-    debugger;
     const { source, destination } = result;
     if (!destination) return;
 
@@ -55,34 +54,10 @@ export default function KanbanBoard({
       return;
     }
 
-    const taskID = result.draggableId;
-    let destColID = destination.droppableId;
-    let destIndex = destination.index;
-
-    const sourceCol = must(
-      columns.find((col) => col.tasks.some((task) => task.id === taskID))
-    );
-
-    const destCol = must(columns.find((col) => col.id === destColID));
-
-    if (sourceCol === destCol) {
-      const currentIndex = sourceCol.tasks.findIndex(
-        (task) => task.id === taskID
-      );
-      if (destIndex > currentIndex) {
-        destIndex++;
-      }
-    }
-
-    const order = generateKeyBetween(
-      destCol.tasks[destIndex - 1]?.order ?? null,
-      destCol.tasks[destIndex]?.order ?? null
-    );
-
     onMoveTask({
       taskID: result.draggableId,
       columnID: destination.droppableId,
-      order,
+      index: destination.index,
     });
   };
 

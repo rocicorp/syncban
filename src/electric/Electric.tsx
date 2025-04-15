@@ -8,6 +8,9 @@ import KanbanBoard, {
 } from "../components/KanbanBoard";
 import { MatchFunction, MatchOperation, matchStream } from "./match-stream";
 import { useMutation, useMutationState } from "@tanstack/react-query";
+import { must } from "~/utils/assert";
+import { generateKeyBetween } from "fractional-indexing";
+import { compareOrdered } from "~/utils/lex";
 
 const shapeURL = import.meta.env.VITE_ELECTRIC_SHAPE_URL;
 if (!shapeURL) {
@@ -46,8 +49,8 @@ export default function Electric() {
     },
   };
 
-  const columns = useShape(columnShape).data;
-  const items = useShape(itemShape).data.map(
+  const columns = useShape<Row<any>>(columnShape).data;
+  const items = useShape<Row<any>>(itemShape).data.map(
     ({ id, column_id, creator_id, title, order }) => {
       return {
         id,
@@ -74,7 +77,7 @@ export default function Electric() {
 
     const findInsertPromise = matchStream({
       stream: itemsStream,
-      operations: [`insert`],
+      operations: [matchOp],
       matchFn,
       signal: abortController.signal,
     }).then((res) => {
@@ -168,8 +171,7 @@ export default function Electric() {
   const { mutateAsync: moveItemMut } = useMutation({
     scope: { id: `items` },
     mutationKey: [`move-item`],
-    mutationFn: (task: { taskID: string; columnID: string; order: string }) =>
-      moveTask(task),
+    mutationFn: (task: MoveTaskRequest) => moveTask(task),
     onMutate: (task) => task,
   });
 
@@ -212,11 +214,30 @@ export default function Electric() {
     select: (mutation) => mutation.state.context as MoveTaskRequest,
   }).filter((item) => item !== undefined);
   pendingMoves.forEach((item) => {
-    const existing = items.findIndex((task) => task.id === item.taskID);
-    if (existing !== -1) {
-      items[existing].columnID = item.columnID;
-      items[existing].order = item.order;
+    const existing = must(items.find((task) => task.id === item.taskID));
+    let destIndex = item.index;
+    if (existing.columnID === item.columnID) {
+      const sourceSiblings = items
+        .filter((task) => task.columnID === existing.columnID)
+        .sort(compareOrdered);
+      const sourceIndex = sourceSiblings.findIndex(
+        (task) => task.id === item.taskID
+      );
+      if (item.index > sourceIndex) {
+        destIndex++;
+      }
     }
+
+    const destSiblings = items
+      .filter((task) => task.columnID === item.columnID)
+      .sort(compareOrdered);
+    const order = generateKeyBetween(
+      destSiblings[destIndex - 1]?.order ?? null,
+      destSiblings[destIndex]?.order ?? null
+    );
+
+    existing.columnID = item.columnID;
+    existing.order = order;
   });
 
   // Now map the data into the shape needed by UI.
@@ -230,17 +251,13 @@ export default function Electric() {
           creatorID: row.columnID,
         };
       })
-      .sort((a: any, b: any) => {
-        return a.order.localeCompare(b.order);
-      });
+      .sort(compareOrdered);
     return {
       ...column,
       tasks,
     } as unknown as Column;
   });
-  mapped.sort((a: any, b: any) => {
-    return a.order.localeCompare(b.order);
-  });
+  mapped.sort(compareOrdered);
 
   return (
     <KanbanBoard
