@@ -1,5 +1,3 @@
-// In KanbanBoard.tsx:
-
 import {
   DragDropContext,
   Droppable,
