@@ -2,6 +2,7 @@ import { useQuery, usePowerSync } from "@powersync/react";
 import KanbanBoard, { AddTaskRequest } from "../components/KanbanBoard";
 import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
+import { must } from "~/utils/assert";
 
 export function Board() {
   const db = usePowerSync();
@@ -24,7 +25,7 @@ export function Board() {
         return {
           ...row,
           columnID: row.column_id,
-          avatarUrl,
+          creatorID: row.creator_id,
         };
       });
     return {
@@ -45,8 +46,8 @@ export function Board() {
     );
 
     await db.execute(
-      'INSERT INTO item (id, column_id, title, body, "order") VALUES (?, ?, ?, ?, ?)',
-      [nanoid(), task.columnID, task.title, "", order]
+      'INSERT INTO item (id, column_id, creator_id, title, body, "order") VALUES (?, ?, ?, ?, ?, ?)',
+      [nanoid(), task.columnID, "42", task.title, "", order]
     );
   };
 
@@ -59,16 +60,21 @@ export function Board() {
     columnID: string;
     index: number;
   }) => {
-    const col = mapped.find((col) => col.id === task.columnID);
-    if (!col) {
-      throw new Error(`Column ${task.columnID} not found`);
+    const col = must(mapped.find((col) => col.id === task.columnID));
+    const currentIndex = col.tasks.findIndex(
+      (task: any) => task.id === task.taskID
+    );
+
+    let destIndex = task.index;
+    if (currentIndex !== -1) {
+      if (currentIndex < destIndex) {
+        destIndex++;
+      }
     }
 
-    const prev = col.tasks.filter((t) => t.id !== task.taskID);
-
     const order = generateKeyBetween(
-      prev[task.index - 1]?.order ?? null,
-      prev[task.index]?.order ?? null
+      col.tasks[task.index - 1]?.order ?? null,
+      col.tasks[task.index]?.order ?? null
     );
 
     await db.execute(

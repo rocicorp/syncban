@@ -13,6 +13,7 @@ const itemTable = new Table(
   {
     // id column (text) is automatically included
     column_id: column.text,
+    creator_id: column.text,
     title: column.text,
     body: column.text,
     order: column.text,
