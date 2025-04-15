@@ -214,28 +214,26 @@ export default function Electric() {
     select: (mutation) => mutation.state.context as MoveTaskRequest,
   }).filter((item) => item !== undefined);
   pendingMoves.forEach((item) => {
-    const existing = must(items.find((task) => task.id === item.taskID));
+    const destSiblings = items
+      .filter((task) => task.columnID === item.columnID)
+      .sort(compareOrdered);
+
     let destIndex = item.index;
-    if (existing.columnID === item.columnID) {
-      const sourceSiblings = items
-        .filter((task) => task.columnID === existing.columnID)
-        .sort(compareOrdered);
-      const sourceIndex = sourceSiblings.findIndex(
-        (task) => task.id === item.taskID
-      );
-      if (item.index > sourceIndex) {
+    const currentIndex = destSiblings.findIndex(
+      (task) => task.id === item.taskID
+    );
+    if (currentIndex !== -1) {
+      if (currentIndex < destIndex) {
         destIndex++;
       }
     }
 
-    const destSiblings = items
-      .filter((task) => task.columnID === item.columnID)
-      .sort(compareOrdered);
     const order = generateKeyBetween(
       destSiblings[destIndex - 1]?.order ?? null,
       destSiblings[destIndex]?.order ?? null
     );
 
+    const existing = must(items.find((task) => task.id === item.taskID));
     existing.columnID = item.columnID;
     existing.order = order;
   });
