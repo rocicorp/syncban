@@ -12,7 +12,7 @@ import { must } from "~/utils/assert";
 import { generateKeyBetween } from "fractional-indexing";
 import { compareOrdered } from "~/utils/lex";
 
-const shapeURL = import.meta.env.VITE_ELECTRIC_SHAPE_URL;
+const shapeURL = import.meta.env.VITE_ELECTRIC_SHAPE_URL + "&cb=" + Date.now();
 if (!shapeURL) {
   throw new Error("VITE_ELECTRIC_SHAPE_URL is not defined");
 }
