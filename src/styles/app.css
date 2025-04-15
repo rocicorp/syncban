@@ -230,6 +230,20 @@ body {
   font-size: 3rem;
   font-weight: bold;
   margin: 3rem 0 0;
+  padding-top: 4.5rem;
+
+  &.project-electric {
+    background: transparent url(/logos/electric.svg) no-repeat center top;
+    background-size: 14rem;
+  }
+  &.project-zero {
+    background: transparent url(/logos/zero.svg) no-repeat center top;
+    background-size: 11rem;
+  }
+  &.project-powersync {
+    background: transparent url(/logos/powersync.svg) no-repeat center top;
+    background-size: 17rem;
+  }
 }
 
 .subheader {
@@ -279,6 +293,11 @@ body {
   cursor: pointer;
   font-weight: 600;
   transition: opacity 0.2s;
+
+  &.brand {
+    padding-top: 5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
 }
 
 .ui-button:hover {
@@ -286,16 +305,20 @@ body {
 }
 
 .ui-button.zero {
-  background-color: var(--color-blue);
+  background: rgba(255, 255, 255, 0.1) url(/logos/zero.svg) no-repeat center;
+  background-size: 8rem;
   color: var(--color-text);
 }
 
 .ui-button.powersync {
-  background-color: var(--color-green);
+  background: rgba(255, 255, 255, 0.1) url(/logos/powersync.svg) no-repeat
+    center;
+  background-size: 8rem;
   color: var(--color-dark-text);
 }
 
 .ui-button.electric {
-  background-color: var(--color-pink);
+  background: rgba(255, 255, 255, 0.1) url(/logos/electric.svg) no-repeat center;
+  background-size: 8rem;
   color: var(--color-dark-text);
 }

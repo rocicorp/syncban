@@ -89,6 +89,7 @@ export function Board() {
       onAddTask={onAddTask}
       onRemoveTask={onRemoveTask}
       onMoveTask={onMoveTask}
+      project="powersync"
     />
   );
 }

@@ -263,6 +263,7 @@ export default function Electric() {
       onAddTask={addItemMut}
       onRemoveTask={removeItemMut}
       onMoveTask={moveItemMut}
+      project="electric"
     />
   );
 }

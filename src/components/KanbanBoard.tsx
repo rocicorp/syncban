@@ -38,11 +38,13 @@ export default function KanbanBoard({
   onAddTask,
   onRemoveTask,
   onMoveTask,
+  project = "",
 }: {
   columns: DeepReadonly<Column[]>;
   onAddTask: (task: AddTaskRequest) => void;
   onRemoveTask: (taskId: string) => void;
   onMoveTask: (task: MoveTaskRequest) => void;
+  project?: string;
 }) {
   const handleDragEnd = (result: DropResult) => {
     const { source, destination } = result;
@@ -109,7 +111,9 @@ export default function KanbanBoard({
 
   return (
     <div>
-      <h1 className="app-title">Project Kanban Board</h1>
+      <h1 className={`app-title ${project ? `project-${project}` : ""}`}>
+        Project Kanban Board
+      </h1>
       <h2 className="subheader">
         Drag &amp; drop tasks to organize your workflow
       </h2>

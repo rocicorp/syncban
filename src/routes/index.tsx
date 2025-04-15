@@ -13,22 +13,16 @@ function Home() {
       <div className="ui-selector">
         <button
           onClick={() => navigate({ to: "/zero" })}
-          className="ui-button zero"
-        >
-          Zero UI
-        </button>
+          className="ui-button brand zero"
+        ></button>
         <button
           onClick={() => navigate({ to: "/powersync" })}
-          className="ui-button powersync"
-        >
-          PowerSync UI
-        </button>
+          className="ui-button brand powersync"
+        ></button>
         <button
           onClick={() => navigate({ to: "/electric" })}
-          className="ui-button electric"
-        >
-          Electric UI
-        </button>
+          className="ui-button brand electric"
+        ></button>
       </div>
     </div>
   );
