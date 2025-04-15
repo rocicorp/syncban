@@ -248,7 +248,7 @@ export default function Electric() {
         return {
           ...row,
           columnID: row.columnID,
-          creatorID: row.columnID,
+          creatorID: row.creatorID,
         };
       })
       .sort(compareOrdered);
