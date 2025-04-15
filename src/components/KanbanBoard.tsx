@@ -118,7 +118,7 @@ export default function KanbanBoard({
             <Droppable droppableId={column.id} key={column.id}>
               {(provided, snapshot) => (
                 <div
-                  className={`column ${column.name} ${
+                  className={`column ${column.name.toLowerCase().replace(" ", "")} ${
                     snapshot.isDraggingOver ? "dragging-over" : ""
                   }`}
                   ref={provided.innerRef}

@@ -100,7 +100,7 @@ body {
     }
   }
 
-  &.inProgress {
+  &.inprogress {
     border: 1px solid var(--color-pink-muted);
 
     h2 {
