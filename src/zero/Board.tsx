@@ -1,92 +1,45 @@
 import { useQuery, useZero } from "@rocicorp/zero/react";
 import { useCallback } from "react";
-import KanbanBoard, { AddTaskRequest } from "../components/KanbanBoard";
+import KanbanBoard, {
+  AddTaskRequest,
+  DeleteTaskRequest,
+  MoveTaskRequest,
+} from "../components/KanbanBoard";
 import { Schema } from "./schema";
-import { nanoid } from "nanoid";
-import { generateKeyBetween } from "fractional-indexing";
+import { Mutators } from "./mutators";
 
 export default function Board() {
-  const z = useZero<Schema>();
+  const z = useZero<Schema, Mutators>();
+
   const [columns] = useQuery(
     z.query.column
-      .related("items", (item) => item.orderBy("order", "asc"))
+      .related("tasks", (item) => item.orderBy("order", "asc"))
       .orderBy("order", "asc")
   );
 
-  const mapped = columns.map((column) => {
-    const tasks = column.items.map((item) => {
-      const avatarId = Math.floor(Math.random() * 70) + 1;
-      const avatarUrl = `https://i.pravatar.cc/40?img=${avatarId}`;
-      return {
-        ...item,
-        avatarUrl,
-      };
-    });
-    return {
-      ...column,
-      tasks,
-    };
-  });
-
   const handleAddTask = useCallback(
-    async (task: AddTaskRequest) => {
-      const col = mapped.find((col) => col.id === task.columnId);
-      if (!col) {
-        throw new Error(`Column ${task.columnId} not found`);
-      }
-
-      const order = generateKeyBetween(
-        col.tasks[col.tasks.length - 1]?.order ?? null,
-        null
-      );
-
-      z.mutate.item.insert({
-        id: nanoid(),
-        columnID: task.columnId,
-        title: task.title,
-        body: "",
-        order,
-      });
-    },
-    [mapped, z]
+    (req: AddTaskRequest) => z.mutate.item.create(req),
+    [z]
   );
 
   const handleRemoveTask = useCallback(
-    async (taskId: string) => {
-      await z.mutate.item.delete({ id: taskId });
-    },
+    (req: DeleteTaskRequest) => z.mutate.item.delete(req),
     [z]
   );
 
   const handleMoveTask = useCallback(
-    async (task: { taskID: string; columnID: string; index: number }) => {
-      const col = mapped.find((col) => col.id === task.columnID);
-      if (!col) {
-        throw new Error(`Column ${task.columnID} not found`);
-      }
+    (req: MoveTaskRequest) => z.mutate.item.move(req),
 
-      const prev = col.tasks.filter((t) => t.id !== task.taskID);
-
-      const order = generateKeyBetween(
-        prev[task.index - 1]?.order ?? null,
-        prev[task.index]?.order ?? null
-      );
-
-      z.mutate.item.update({
-        id: task.taskID,
-        columnID: task.columnID,
-        order,
-      });
-    },
-    [mapped, z]
+    [z]
   );
 
   return (
     <KanbanBoard
-      columns={mapped}
+      columns={columns}
       onAddTask={handleAddTask}
       onRemoveTask={handleRemoveTask}
       onMoveTask={handleMoveTask}
+      project="zero"
     />
   );
 }

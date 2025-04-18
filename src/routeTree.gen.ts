@@ -11,14 +11,49 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ZeroTestRouteImport } from './routes/zero-test.route'
 import { Route as ZeroRouteImport } from './routes/zero.route'
+import { Route as PowersyncTestRouteImport } from './routes/powersync-test.route'
+import { Route as PowersyncRouteImport } from './routes/powersync.route'
+import { Route as ElectricTestRouteImport } from './routes/electric-test.route'
+import { Route as ElectricRouteImport } from './routes/electric.route'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
 
+const ZeroTestRouteRoute = ZeroTestRouteImport.update({
+  id: '/zero-test',
+  path: '/zero-test',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ZeroRouteRoute = ZeroRouteImport.update({
   id: '/zero',
   path: '/zero',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PowersyncTestRouteRoute = PowersyncTestRouteImport.update({
+  id: '/powersync-test',
+  path: '/powersync-test',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PowersyncRouteRoute = PowersyncRouteImport.update({
+  id: '/powersync',
+  path: '/powersync',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ElectricTestRouteRoute = ElectricTestRouteImport.update({
+  id: '/electric-test',
+  path: '/electric-test',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ElectricRouteRoute = ElectricRouteImport.update({
+  id: '/electric',
+  path: '/electric',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,11 +74,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/electric': {
+      id: '/electric'
+      path: '/electric'
+      fullPath: '/electric'
+      preLoaderRoute: typeof ElectricRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/electric-test': {
+      id: '/electric-test'
+      path: '/electric-test'
+      fullPath: '/electric-test'
+      preLoaderRoute: typeof ElectricTestRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/powersync': {
+      id: '/powersync'
+      path: '/powersync'
+      fullPath: '/powersync'
+      preLoaderRoute: typeof PowersyncRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/powersync-test': {
+      id: '/powersync-test'
+      path: '/powersync-test'
+      fullPath: '/powersync-test'
+      preLoaderRoute: typeof PowersyncTestRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/zero': {
       id: '/zero'
       path: '/zero'
       fullPath: '/zero'
       preLoaderRoute: typeof ZeroRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/zero-test': {
+      id: '/zero-test'
+      path: '/zero-test'
+      fullPath: '/zero-test'
+      preLoaderRoute: typeof ZeroTestRouteImport
       parentRoute: typeof rootRoute
     }
   }
@@ -53,37 +123,84 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
+  '/electric-test': typeof ElectricTestRouteRoute
+  '/powersync': typeof PowersyncRouteRoute
+  '/powersync-test': typeof PowersyncTestRouteRoute
   '/zero': typeof ZeroRouteRoute
+  '/zero-test': typeof ZeroTestRouteRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
+  '/electric-test': typeof ElectricTestRouteRoute
+  '/powersync': typeof PowersyncRouteRoute
+  '/powersync-test': typeof PowersyncTestRouteRoute
   '/zero': typeof ZeroRouteRoute
+  '/zero-test': typeof ZeroTestRouteRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/electric': typeof ElectricRouteRoute
+  '/electric-test': typeof ElectricTestRouteRoute
+  '/powersync': typeof PowersyncRouteRoute
+  '/powersync-test': typeof PowersyncTestRouteRoute
   '/zero': typeof ZeroRouteRoute
+  '/zero-test': typeof ZeroTestRouteRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/zero'
+  fullPaths:
+    | '/'
+    | '/electric'
+    | '/electric-test'
+    | '/powersync'
+    | '/powersync-test'
+    | '/zero'
+    | '/zero-test'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/zero'
-  id: '__root__' | '/' | '/zero'
+  to:
+    | '/'
+    | '/electric'
+    | '/electric-test'
+    | '/powersync'
+    | '/powersync-test'
+    | '/zero'
+    | '/zero-test'
+  id:
+    | '__root__'
+    | '/'
+    | '/electric'
+    | '/electric-test'
+    | '/powersync'
+    | '/powersync-test'
+    | '/zero'
+    | '/zero-test'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ElectricRouteRoute: typeof ElectricRouteRoute
+  ElectricTestRouteRoute: typeof ElectricTestRouteRoute
+  PowersyncRouteRoute: typeof PowersyncRouteRoute
+  PowersyncTestRouteRoute: typeof PowersyncTestRouteRoute
   ZeroRouteRoute: typeof ZeroRouteRoute
+  ZeroTestRouteRoute: typeof ZeroTestRouteRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ElectricRouteRoute: ElectricRouteRoute,
+  ElectricTestRouteRoute: ElectricTestRouteRoute,
+  PowersyncRouteRoute: PowersyncRouteRoute,
+  PowersyncTestRouteRoute: PowersyncTestRouteRoute,
   ZeroRouteRoute: ZeroRouteRoute,
+  ZeroTestRouteRoute: ZeroTestRouteRoute,
 }
 
 export const routeTree = rootRoute
@@ -97,14 +214,34 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/zero"
+        "/electric",
+        "/electric-test",
+        "/powersync",
+        "/powersync-test",
+        "/zero",
+        "/zero-test"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
+    "/electric": {
+      "filePath": "electric.route.tsx"
+    },
+    "/electric-test": {
+      "filePath": "electric-test.route.tsx"
+    },
+    "/powersync": {
+      "filePath": "powersync.route.tsx"
+    },
+    "/powersync-test": {
+      "filePath": "powersync-test.route.tsx"
+    },
     "/zero": {
       "filePath": "zero.route.tsx"
+    },
+    "/zero-test": {
+      "filePath": "zero-test.route.tsx"
     }
   }
 }

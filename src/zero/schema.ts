@@ -24,11 +24,12 @@ const item = table("item")
     title: string(),
     body: string(),
     order: string(),
+    creatorID: string().from("creator_id"),
   })
   .primaryKey("id");
 
 const columnRelationships = relationships(column, ({ many }) => ({
-  items: many({
+  tasks: many({
     sourceField: ["id"],
     destSchema: item,
     destField: ["columnID"],

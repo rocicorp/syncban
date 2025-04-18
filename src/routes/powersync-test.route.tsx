@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
-export const Route = createFileRoute("/zero")({
+export const Route = createFileRoute("/powersync-test")({
   component: RouteComponent,
 });
 
-const ZeroApp = lazy(() => import("../zero/ZeroApp"));
+const PowerSync = lazy(() => import("../powersync/PowerSync"));
 
 function RouteComponent() {
   return (
     <Suspense fallback={null}>
-      <ZeroApp content="board" />
+      <PowerSync content="dump" />
     </Suspense>
   );
 }

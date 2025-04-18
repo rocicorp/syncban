@@ -38,12 +38,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.TanStackRouterDevtools {
+  display: none;
+}
+
 .kanban-board {
   display: flex;
   gap: 1rem;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 1rem;
+}
+
+.mobile-rotate {
+  display: none;
 }
 
 .new-task {
@@ -100,7 +108,7 @@ body {
     }
   }
 
-  &.inProgress {
+  &.inprogress {
     border: 1px solid var(--color-pink-muted);
 
     h2 {
@@ -229,7 +237,21 @@ body {
   text-align: center;
   font-size: 3rem;
   font-weight: bold;
-  margin: 3rem 0 0;
+  margin: 3rem 0 1rem;
+  padding-top: 4.5rem;
+
+  &.project-electric {
+    background: transparent url(/logos/electric.svg) no-repeat center top;
+    background-size: 14rem;
+  }
+  &.project-zero {
+    background: transparent url(/logos/zero.svg) no-repeat center top;
+    background-size: 11rem;
+  }
+  &.project-powersync {
+    background: transparent url(/logos/powersync.svg) no-repeat center top;
+    background-size: 17rem;
+  }
 }
 
 .subheader {
@@ -242,7 +264,7 @@ body {
 .task-list {
   display: flex;
   flex-direction: column;
-  min-height: 48px;
+  flex: 1;
 }
 
 .avatar {
@@ -272,13 +294,18 @@ body {
 }
 
 .ui-button {
-  width: 16rem;
+  width: 12rem;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
   transition: opacity 0.2s;
+
+  &.brand {
+    padding-top: 5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
 }
 
 .ui-button:hover {
@@ -286,16 +313,67 @@ body {
 }
 
 .ui-button.zero {
-  background-color: var(--color-blue);
+  background: rgba(255, 255, 255, 0.1) url(/logos/zero.svg) no-repeat center;
+  background-size: 8rem;
   color: var(--color-text);
 }
 
 .ui-button.powersync {
-  background-color: var(--color-green);
+  background: rgba(255, 255, 255, 0.1) url(/logos/powersync.svg) no-repeat
+    center;
+  background-size: 8rem;
   color: var(--color-dark-text);
 }
 
 .ui-button.electric {
-  background-color: var(--color-pink);
+  background: rgba(255, 255, 255, 0.1) url(/logos/electric.svg) no-repeat center;
+  background-size: 8rem;
   color: var(--color-dark-text);
+}
+
+@media (max-width: 1000px) and (max-height: 1000px) {
+  .app-title {
+    margin: 1rem 0 0.5rem;
+  }
+
+  .index-page {
+    padding: 0 !important;
+    height: calc(100vh - 2rem);
+    box-sizing: border-box;
+
+    .ui-selector {
+      gap: 0.5rem;
+    }
+
+    .app-title {
+      padding: 0;
+      margin: 0;
+    }
+  }
+}
+
+@media (max-width: 666px) {
+  .app-title,
+  .ui-selector,
+  .kanban-board {
+    display: none;
+  }
+
+  .mobile-rotate {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+
+    .mobile-rotate-message {
+      text-align: center;
+      width: 12rem;
+      line-height: 1.7;
+      padding-top: 5rem;
+      background: transparent url(/icons/icon-rotate-device.svg) no-repeat
+        center top;
+      background-size: 8rem;
+      margin: 0;
+    }
+  }
 }

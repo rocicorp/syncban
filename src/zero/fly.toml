@@ -18,15 +18,15 @@ timeout = "5s"
 path = "/"
 
 [[vm]]
-memory = '2gb'
-cpu_kind = 'shared'
-cpus = 2
+size = 'performance-16x'
 
 [mounts]
 source = "sqlite_db"
 destination = "/data"
 
 [env]
-ZERO_REPLICA_FILE = "/data/sync-replica.db"
-ZERO_UPSTREAM_DB="postgresql://postgres:kanbanisfordemo@db.kymjheqzdcrxemndpecn.supabase.co:5432/postgres?sslmode=disable"
-LOG_LEVEL = "debug"
+JWT_SECRET="supersecret"
+ZERO_LOG_LEVEL="debug"
+ZERO_PUSH_URL="https://syncban.vercel.app/api/zero/push"
+ZERO_REPLICA_FILE="/tmp/zero.db"
+ZERO_UPSTREAM_DB=""
