@@ -18,7 +18,7 @@ timeout = "5s"
 path = "/"
 
 [[vm]]
-size = 'performance-16x'
+size = 'shared-cpu-2x'
 
 [mounts]
 source = "sqlite_db"
