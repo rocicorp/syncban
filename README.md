@@ -1,4 +1,4 @@
-# Three sync engines, one kanban.
+# Three sync engines, one kanban
 
 This project demonstrates three sync engines (Zero, Electric, and PowerSync) and three UIs running live against the same Postgres.
 
