@@ -1,6 +1,10 @@
-# Syncban
+# Three sync engines, one kanban.
 
-Three sync engines, one kanban.
+This project demonstrates three sync engines (Zero, Electric, and PowerSync) and three UIs running live against the same Postgres.
+
+This was demo'd live on stage at React Miami 2025:
+
+[https://www.youtube.com/watch?v=SNAHZZo21To](https://www.youtube.com/watch?v=SNAHZZo21To&t=1707s)
 
 ## Setup
 
